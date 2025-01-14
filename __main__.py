@@ -2,7 +2,8 @@ from qiskit import QuantumCircuit
 from matplotlib import pyplot as plt
 
 import matplotlib
-matplotlib.use('TkAgg')  # or 'Agg', 'Qt5Agg', etc.
+
+matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
 def encode_message(msg, circuit, index=0):
