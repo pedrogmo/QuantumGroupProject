@@ -11,7 +11,7 @@ matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 def main():
     simulator = AerSimulator()
-    circ = transpile(circuit.build_circuit("00"), simulator)
+    circ = transpile(circuit.build_circuit("11"), simulator)
 
     result = simulator.run(circ, shots=100).result()
     counts = result.get_counts(circ)

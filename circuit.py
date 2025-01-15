@@ -2,17 +2,13 @@ from qiskit import QuantumCircuit
 
 
 def encode_message(circuit, msg, index=0):
-    if msg == "00":
-        pass  # To send 00 we do nothing
-    elif msg == "10":
-        circuit.x(index)  # To send 10 we apply an X-gate
-    elif msg == "01":
-        circuit.z(index)  # To send 01 we apply a Z-gate
-    elif msg == "11":
-        circuit.z(index)  # To send 11, we apply a Z-gate
-        circuit.x(index)  # followed by an X-gate
-    else:
+    if msg not in ["00", "01", "10", "11"]:
         raise ValueError("Invalid message: can either be 00, 01, 10 or 11")
+
+    if msg[0] == "1":
+        circuit.x(index)
+    if msg[1] == "1":
+        circuit.z(index)
 
 
 def bell_pair(circuit, index_0, index_1):
