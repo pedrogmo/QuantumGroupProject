@@ -1,4 +1,4 @@
-from qiskit import QuantumCircuit, transpile
+from qiskit import transpile
 from qiskit.visualization import plot_histogram
 from qiskit_aer import AerSimulator
 
@@ -10,14 +10,28 @@ matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
 def main():
-    simulator = AerSimulator()
-    circ = transpile(circuit.build_circuit("11"), simulator)
+    message = "100011"
+    print(f"The message {message} will be sent using superdense coding.")
 
-    result = simulator.run(circ, shots=100).result()
-    counts = result.get_counts(circ)
-
-    plot_histogram(counts, title="Superdense coding")
+    # Define and draw the circuit
+    circ = circuit.build_circuit(message)
+    circ.draw(output="mpl")
     plt.show()
+
+    # Define the simulator and simulate the circuit
+    simulator = AerSimulator()
+    circ = transpile(circ, simulator)
+    result = simulator.run(circ, shots=1, memory=True).result()
+
+    # Print the last result of the simulation
+    memory = result.get_memory(circ)
+    message_result = memory[-1]
+    print(f"The message {message_result} has been received.")
+
+    # Plot the results of the simulation
+    # counts = result.get_counts(circ)
+    # plot_histogram(counts, title="Superdense coding")
+    # plt.show()
 
 
 if __name__ == "__main__":
