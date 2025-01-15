@@ -1,6 +1,7 @@
 matplotlib
 qiskit
 qiskit-ibm-runtime
+qiskit_aer
 qiskit[visualization]
 jupyter
 numpy
