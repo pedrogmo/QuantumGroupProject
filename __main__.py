@@ -21,7 +21,7 @@ def main():
     # Create a quantum circuit with two qubits
     qc = QuantumCircuit(2, 2)
     simulator = AerSimulator()
-    circ = transpile(circuit.build_circuit("00"), simulator)
+    circ = transpile(circuit.build_circuit("11"), simulator)
 
     result = simulator.run(circ, shots=100).result()
     counts = result.get_counts(circ)
