@@ -59,11 +59,13 @@ def transmit_image():
     # Bistring measured by Bob
     bob_bitstr = ""
 
-    # Alice applies operations to each of her qubit depending on the bit pair
     for i in range(n):
         circ = circuits[i]
 
+        # Get the next two bits from the bit string
         msg = bitstr[2*i:2*(i+1)]
+
+        # Alice applies operations to each of her qubit depending on the bit pair
         encode_message(circ, msg)
         
         # Now, Alice sends her component of the entangled pair
