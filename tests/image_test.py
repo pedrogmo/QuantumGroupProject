@@ -43,7 +43,7 @@ def convert_bitstr_to_bytes_test():
     assert test_str == result_str
 
 
-# if __name__ == "__main__":
-# display_mario_test()
-# bitstr_mario_test()
-# convert_bitstr_to_bytes_test()
+if __name__ == "__main__":
+    # display_mario_test()
+    bitstr_mario_test()
+    # convert_bitstr_to_bytes_test()

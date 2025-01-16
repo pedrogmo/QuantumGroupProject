@@ -6,3 +6,4 @@ qiskit[visualization]
 jupyter
 numpy
 bitstring
+lz4

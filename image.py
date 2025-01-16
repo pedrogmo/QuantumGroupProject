@@ -5,7 +5,25 @@ from pathlib import Path
 from PIL import Image as PILImage
 from bitstring import Bits
 
+import lz4.frame
+
 PRECISION: Final[int] = 8
+
+
+def decompress(bitstr: str) -> str:
+    raw_bitstr = Bits(bin=bitstr).tobytes()
+    bitstr = lz4.frame.decompress(raw_bitstr).decode()
+
+    return bitstr
+
+
+def compress(bitstr: str) -> str:
+    compressed_bits = lz4.frame.compress(
+        bitstr.encode(), compression_level=lz4.frame.COMPRESSIONLEVEL_MAX
+    )
+    bitstr = Bits(bytes=compressed_bits).bin
+
+    return bitstr
 
 
 def convert_bitstr_to_bytes(bitstr: str, precision: int = 8) -> bytes:
@@ -35,7 +53,7 @@ class Image:
     height: int
     buffer: PILImage.Image
 
-    encoding: str = "RGB"
+    encoding: str = "L"
 
     def __init__(self, path: str):
         self.path = Path(path)
@@ -98,7 +116,11 @@ class Image:
         new_instance.height = height
         new_instance.path = "bitstring"
 
-        new_instance.buffer = cls._decode(bitstr, new_instance.encoding, (width, height))
+        bitstr = decompress(bitstr)
+
+        new_instance.buffer = cls._decode(
+            bitstr, new_instance.encoding, (width, height)
+        )
 
         return new_instance
 
@@ -108,7 +130,12 @@ class Image:
         Returns:
             str: Returns the bitstring representation of the image
         """
-        return self._encode(self.buffer, self.encoding)
+
+        bitstr = self._encode(self.buffer, self.encoding)
+
+        bitstr = compress(bitstr)
+
+        return bitstr
 
     def display(self):
         """Displays the image using matplotlib"""
