@@ -9,29 +9,26 @@ import matplotlib
 matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
-def main():
-    message = "100011"
-    print(f"The message {message} will be sent using superdense coding.")
-
-    # Define and draw the circuit
-    circ = circuit.build_circuit(message)
-    circ.draw(output="mpl")
-    plt.show()
-
-    # Define the simulator and simulate the circuit
-    simulator = AerSimulator()
-    circ = transpile(circ, simulator)
+def superdense_simulate(simulator, message):
+    circ = transpile(circuit.build_circuit(message), simulator)
     result = simulator.run(circ, shots=1, memory=True).result()
+    return result.get_memory(circ)[-1]
 
-    # Print the last result of the simulation
-    memory = result.get_memory(circ)
-    message_result = memory[-1]
+
+def superdense_simulate2(simulator, message):
+    circs = circuit.build_circuits(message, 8)
+    results = list(simulator.run(circ, shots=1, memory=True).result().get_memory(circ)[-1] for circ in circs)
+    return "".join(results)
+
+
+def main():
+    simulator = AerSimulator()
+    message = "11001011101111010111010111010101101011111100101110111101011101011101010110101111"
+    print(f"The message {message} will be sent using superdense coding.")
+    message_result = superdense_simulate2(simulator, message)
     print(f"The message {message_result} has been received.")
 
-    # Plot the results of the simulation
-    # counts = result.get_counts(circ)
-    # plot_histogram(counts, title="Superdense coding")
-    # plt.show()
+    assert message == message_result
 
 
 if __name__ == "__main__":
