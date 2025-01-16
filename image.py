@@ -3,21 +3,30 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pathlib import Path
 from PIL import Image as PILImage
+from bitstring import Bits
 
-PRECISION: Final[int] = 3
-
-
-def convert_bitstr_to_bytes(bitstr: str) -> bytes:
-    if len(bitstr) % PRECISION != 0:
-        raise ValueError("Invalid bitstring length")
-
-    return bytes(
-        int(bitstr[i : i + PRECISION], 2) for i in range(0, len(bitstr), PRECISION)
-    )
+PRECISION: Final[int] = 8
 
 
-def convert_bytes_to_bitstr(data: bytes) -> str:
-    return "".join(f"{round(byte / (2**(len(bin(max(data))[2:]) - PRECISION))):0{PRECISION}b}" for byte in data)
+def convert_bitstr_to_bytes(bitstr: str, precision: int = 8) -> bytes:
+    # split up the bitstring into precision bit-chunks
+    bit_chunks = [bitstr[i : i + precision] for i in range(0, len(bitstr), precision)]
+
+    # convert each bit-chunk to a byte using the Bits class
+    bytes_list = [Bits(bin=chunk, length=precision).tobytes() for chunk in bit_chunks]
+
+    # concatenate the bytes together
+    byt = b"".join(bytes_list)
+
+    return byt
+
+
+def convert_bytes_to_bitstr(data: bytes, precision: int = 8) -> str:
+    # for each byte in the data, convert it to a bitstring using the Bits class
+
+    bit_chunks = [Bits(uint=byte, length=precision).bin for byte in data]
+
+    return "".join(bit_chunks)
 
 
 class Image:
@@ -25,6 +34,8 @@ class Image:
     width: int
     height: int
     buffer: PILImage.Image
+
+    encoding: str = "RGB"
 
     def __init__(self, path: str):
         self.path = Path(path)
@@ -50,24 +61,30 @@ class Image:
             PILImage.Image: Returns a PIL Image
         """
 
-        data: bytes = convert_bitstr_to_bytes(bitstr)
+        data: bytes = convert_bitstr_to_bytes(bitstr, PRECISION)
 
         return PILImage.frombytes(mode, size, data)
 
     @staticmethod
-    def _encode(image: PILImage.Image) -> str:
+    def _encode(image: PILImage.Image, mode: str) -> str:
         """Encodes a PIL Image to a bitstring
 
         Returns:
             str: Returns a bitstring
         """
 
+        if mode != "1":
+            image = image.convert(mode)
+        else:
+            image = image.split()[0].point(lambda p: p > 1 and 255).convert(mode)
         data: bytes = image.tobytes()
+
+        print(f"Length of data: {len(data)}")
 
         return convert_bytes_to_bitstr(data)
 
     @classmethod
-    def from_bitstr(cls: Self, bitstr: str, width: int = 16, height: int = 8) -> Self:
+    def from_bitstr(cls: Self, bitstr: str, width: int = 16, height: int = 16) -> Self:
         """Creates an instance of the Image class from a bitstring
 
         Args:
@@ -78,11 +95,12 @@ class Image:
         Returns:
             Image: Returns an instance of the Image class
         """
-        new_instance: Image = cls()
+        new_instance: Image = cls.__new__(Image)
         new_instance.width = width
         new_instance.height = height
+        new_instance.path = "bitstring"
 
-        new_instance.buffer = cls._decode(bitstr, 'RGB', (width, height))
+        new_instance.buffer = cls._decode(bitstr, new_instance.encoding, (width, height))
 
         return new_instance
 
@@ -92,9 +110,11 @@ class Image:
         Returns:
             str: Returns the bitstring representation of the image
         """
-        return self._encode(self.buffer)
+        return self._encode(self.buffer, self.encoding)
 
     def display(self):
         """Displays the image using matplotlib"""
         print(f"Displaying image from {self.path}")
         plt.imshow(self.buffer)
+        plt.axis("off")
+        plt.show()

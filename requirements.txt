@@ -5,3 +5,4 @@ qiskit_aer
 qiskit[visualization]
 jupyter
 numpy
+bitstring
