@@ -79,8 +79,6 @@ class Image:
             image = image.split()[0].point(lambda p: p > 1 and 255).convert(mode)
         data: bytes = image.tobytes()
 
-        print(f"Length of data: {len(data)}")
-
         return convert_bytes_to_bitstr(data)
 
     @classmethod
