@@ -21,7 +21,8 @@ def superdense_simulate(simulator, message):
 def superdense_simulate2(simulator, message, package_size):
     circs = circuit.build_circuits(message, package_size)
     circs_transpiled = list(transpile(circ, simulator) for circ in circs)
-    results = list(simulator.run(circ, shots=1, memory=True).result().get_memory(circ)[-1] for circ in circs_transpiled)
+    results = list(simulator.run(circ, shots=1, memory=True).result().get_memory(circ)[-1]
+                   for circ in circs_transpiled)
     return "".join(results)
 
 
