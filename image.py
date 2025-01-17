@@ -106,7 +106,7 @@ class Image:
         width: int = 16,
         height: int = 16,
         encoding: str = None,
-        compress: bool = True,
+        compress_flag: bool = True,
     ) -> Self:
         """Creates an instance of the Image class from a bitstring
 
@@ -125,14 +125,14 @@ class Image:
 
         encoding = encoding or cls.encoding
 
-        if compress:
+        if compress_flag:
             bitstr = decompress(bitstr)
 
         new_instance.buffer = cls._decode(bitstr, encoding, (width, height))
 
         return new_instance
 
-    def to_bitstr(self, encoding: str = None, compress: bool = True) -> str:
+    def to_bitstr(self, encoding: str = None, compress_flag: bool = True) -> str:
         """Converts the image to a bitstring
 
         Returns:
@@ -143,7 +143,7 @@ class Image:
 
         bitstr = self._encode(self.buffer, encoding)
 
-        if compress:
+        if compress_flag:
             bitstr = compress(bitstr)
 
         return bitstr

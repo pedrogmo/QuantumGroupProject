@@ -20,11 +20,8 @@ def superdense_simulate(simulator, message):
 
 
 def superdense_simulate2(simulator, message, package_size):
-    print("Building")
     circs = circuit.build_circuits(message, package_size)
-    print("Transpiling")
     circs_transpiled = list(transpile(circ, simulator) for circ in circs)
-    print("Simulating")
     results = list(simulator.run(circ, shots=1, memory=True).result().get_memory(circ)[-1]
                    for circ in circs_transpiled)
     return "".join(results)
@@ -58,5 +55,5 @@ def transmit_msg():
 
 
 if __name__ == "__main__":
-    main()
-    # transmit_msg()
+    # main()
+    transmit_msg()
