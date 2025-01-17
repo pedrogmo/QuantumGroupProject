@@ -6,6 +6,7 @@ import circuit
 
 from matplotlib import pyplot as plt
 import matplotlib
+import time
 
 from image import Image
 matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
@@ -19,8 +20,11 @@ def superdense_simulate(simulator, message):
 
 
 def superdense_simulate2(simulator, message, package_size):
+    print("Building")
     circs = circuit.build_circuits(message, package_size)
+    print("Transpiling")
     circs_transpiled = list(transpile(circ, simulator) for circ in circs)
+    print("Simulating")
     results = list(simulator.run(circ, shots=1, memory=True).result().get_memory(circ)[-1]
                    for circ in circs_transpiled)
     return "".join(results)
@@ -28,12 +32,15 @@ def superdense_simulate2(simulator, message, package_size):
 
 def main():
     simulator = AerSimulator()
-    message = "1111111111111111111111111111"
-    print(f"The message {message} will be sent using superdense coding.")
-    message_result = superdense_simulate2(simulator, message, 8)
-    print(f"The message {message_result} has been received.")
+    message = "00" * 100
 
-    assert message == message_result
+    print(f"The message {message} will be sent using superdense coding.")
+    t0 = time.time()
+    message_result = superdense_simulate2(simulator, message, 100)
+    t1 = time.time()
+    print(f"The message {message_result} has been received.")
+    print("Runtime = {:.3f}".format(t1 - t0))
+
 
 def transmit_msg():
     simulator = AerSimulator()
@@ -51,5 +58,5 @@ def transmit_msg():
 
 
 if __name__ == "__main__":
-    # main()
-    transmit_msg()
+    main()
+    # transmit_msg()

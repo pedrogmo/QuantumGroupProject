@@ -49,6 +49,9 @@ def build_circuit(bits):
 def build_circuits(bits, package_size):
     if package_size % 2 == 1:
         raise ValueError("Invalid package length: packages should be an even number of bits long")
+    if package_size > 28:
+        print("Warning: qiskit does not support simulating >28 qubits. Package size has been set to 28.")
+        package_size = 28
 
     packages = list(bits[i:i+package_size] for i in range(0, len(bits), package_size))
     return list(build_circuit(package) for package in packages)
