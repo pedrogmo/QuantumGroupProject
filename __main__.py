@@ -6,6 +6,8 @@ import circuit
 
 from matplotlib import pyplot as plt
 import matplotlib
+
+from image import Image
 matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
@@ -30,6 +32,22 @@ def main():
 
     assert message == message_result
 
+def transmit_msg():
+    simulator = AerSimulator()
+    image = Image("./images/mario.png")
+    message = image.to_bitstr()
+    
+    print("Transmitting message of length ", len(message))
+    
+    message_result = superdense_simulate2(simulator, message)
+    
+    image_result = Image.from_bitstr(message_result, image.width, image.height)
+    
+    print("Finished transmitting image!")
+    
+    image_result.display()
+
 
 if __name__ == "__main__":
-    main()
+    # main()
+    transmit_msg()
