@@ -53,7 +53,7 @@ class Image:
     height: int
     buffer: PILImage.Image
 
-    encoding: str = "L"
+    encoding: str = "RGB"
 
     def __init__(self, path: str):
         self.path = Path(path)
