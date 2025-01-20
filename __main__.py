@@ -1,6 +1,8 @@
+import qiskit_ibm_runtime.fake_provider
 from qiskit import transpile
 from qiskit_aer import AerSimulator
 from qiskit.visualization import plot_histogram
+from qiskit_ibm_runtime.fake_provider import FakeQuebec
 
 import matplotlib
 from matplotlib import pyplot as plt
@@ -11,13 +13,15 @@ from image import Image
 matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
-def superdense_simulate(simulator: AerSimulator, bitstring: str, package_size: int) -> str:
+def superdense_simulate(simulator, bitstring: str, package_size: int, error_correction=False) -> str:
     """
     This simulation method assumes a perfect noiseless simulator. This is why the simulation is only run once (shots=1)
     and using memory=True the resulting measurement is recorded into a list and retrieved using [-1]. This yields a list
     of bitstrings, which are then joined together to recreate the original bitstring
     """
-    #
+    n = 3
+    if error_correction:
+        bitstring *= n
 
     # Build all the circuits (amount of circuits depends on amount of packages)
     circs = circuit.build_circuits(bitstring, package_size)
@@ -30,7 +34,13 @@ def superdense_simulate(simulator: AerSimulator, bitstring: str, package_size: i
         simulator.run(circ, shots=1, memory=True).result().get_memory(circ)[-1]
         for circ in circs_transpiled
     )
-    return "".join(results)
+    results = "".join(results)
+
+    if error_correction:
+        threshold = int((n - 1) / 2)
+        results = list(results[i:i + n] for i in range(0, len(results), n))
+        results = "".join(list("1" if bit.count("1") > threshold else "0" for bit in results))
+    return results
 
 
 def superdense_draw(bitstring: str):
@@ -40,13 +50,12 @@ def superdense_draw(bitstring: str):
 
 
 def main():
-    simulator = AerSimulator()
-    message = "11"
+    simulator = FakeQuebec()
+    message = "1111111111"
     print(f"The message {message} will be sent using superdense coding.")
-    message_result = superdense_simulate(simulator, message, 28)
+    message_result = superdense_simulate(simulator, message, 8, error_correction=False)
     print(f"The message {message_result} has been received.")
-    superdense_draw("1101")
-    assert message == message_result
+    # assert message == message_result
 
 
 def transmit_msg():
