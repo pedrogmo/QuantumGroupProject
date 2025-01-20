@@ -45,7 +45,7 @@ def superdense_simulate(simulator, bitstring: str, package_size: int, error_corr
 
 def superdense_draw(bitstring: str):
     circ = circuit.build_circuit(bitstring)
-    circ.draw(output="mpl")
+    circ.draw("mpl")
     plt.show()
 
 
