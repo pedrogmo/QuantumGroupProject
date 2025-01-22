@@ -51,6 +51,9 @@ def build_circuit(bits: str) -> QuantumCircuit:
         bell_state(circuit, i, i+1)
     circuit.barrier()
 
+    # Here, we can wait an arbitrary amount of time
+    circuit.delay(200.79, unit="us") # Delay of 200.79 microseconds      
+
     # Encode the bit pairs into the first qubit of every Bell-pair
     for i in range(0, n, 2):
         encode_bit_pair(circuit, bits[i:i + 2], i)

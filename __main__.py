@@ -28,6 +28,23 @@ def main():
 
 def transmit_msg():
     simulator = AerSimulator()
+
+    image = Image("./images/mario.png")
+    message = image.to_bitstr()
+
+    print("Transmitting message of length ", len(message))
+
+    message_result = simulation.simulate_normal(simulator, message, 28, 1)[0]
+    image_result = Image.from_bitstr(message_result, image.width, image.height)
+
+    print("Finished transmitting image!")
+
+    image_result.display()
+
+def transmit_img_decoherence():
+    device_backend = FakeQuebec()
+    simulator = AerSimulator.from_backend(device_backend)
+
     image = Image("./images/mario.png")
     message = image.to_bitstr()
 
@@ -41,6 +58,8 @@ def transmit_msg():
     image_result.display()
 
 
+
 if __name__ == "__main__":
-    main()
+    # main()
     # transmit_msg()
+    transmit_img_decoherence()
