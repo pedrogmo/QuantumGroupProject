@@ -2,7 +2,14 @@ from qiskit import transpile
 import circuit
 
 
-def simulate_normal(simulator, bitstring: str, package_size: int, shots=1, delay_us:float = 0.0) -> list:
+bit_flip_threshold = 0.7
+bit_flip_addon = 2
+bit_flip_no = "0" * bit_flip_addon
+bit_flip_yes = "1" * bit_flip_addon
+
+
+
+def simulate_normal(simulator, bitstring: str, package_size: int, shots: int=1) -> list:
     """
     This simulation method assumes a perfect noiseless simulator. This is why the simulation is only run once (shots=1)
     and using memory=True the resulting measurement is recorded into a list and retrieved using [-1]. This yields a list
@@ -21,7 +28,6 @@ def simulate_normal(simulator, bitstring: str, package_size: int, shots=1, delay
         for circ in circs_transpiled
     )
 
-
     # Reorder results into correct list of bitstrings
     results = list(
         "".join(result[i] for result in results)
@@ -33,7 +39,7 @@ def simulate_normal(simulator, bitstring: str, package_size: int, shots=1, delay
 def error_correction_encode(bitstring: str, n: int=3) -> str:
     if n % 2 == 0:
         raise ValueError("Invalid multiplier: n should be an uneven number")
-    return bitstring * n
+    return "".join(bit * n for bit in bitstring)
 
 
 def error_correction_decode(bitstring: str, n: int=3) -> str:
@@ -46,36 +52,40 @@ def error_correction_decode(bitstring: str, n: int=3) -> str:
 
 
 def bitstring_flip(bitstring: str) -> str:
-    new_bitstring = ""
-    for bit in bitstring:
-        if bit == "0":
-            new_bitstring += "1"
-        else:
-            new_bitstring += "0"
-    return new_bitstring
+    return "".join("1" if bit == "0" else "0" for bit in bitstring)
 
 
 def bit_flip_encode(bitstring: str) -> str:
-    if bitstring.count("0") > bitstring.count("1"):
-        return "00" + bitstring
-    return "11" + bitstring_flip(bitstring)
+    count_1 = bitstring.count("1") / len(bitstring)
+    if count_1 > 0.7:
+        return bit_flip_yes + bitstring_flip(bitstring)
+    return bit_flip_no + bitstring
 
 
 def bit_flip_decode(bitstring: str) -> str:
-    if bitstring[0:2] == "00":
-        return bitstring[2:]
-    elif bitstring[0:2] == "11":
-        return bitstring_flip(bitstring[2:])
-    raise ValueError("Invalid starter bit pair: should either be 00 (not flipped) or 11 (flipped)")
+    if bitstring[0:bit_flip_addon] == bit_flip_no:
+        return bitstring[bit_flip_addon:]
+    return  bitstring_flip(bitstring[bit_flip_addon:])
 
 
-def simulate_error_correction(simulator, bitstring: str, package_size: int, n: int=3) -> list:
+def simulate_error_correction(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
     bitstring = error_correction_encode(bitstring, n)
-    results = simulate_normal(simulator, bitstring, package_size)
+    results = simulate_normal(simulator, bitstring, package_size, shots)
     return list(error_correction_decode(result, n) for result in results)
 
 
-def simulate_bit_flip(simulator, bitstring: str, package_size: int) -> list:
+def simulate_bit_flip(simulator, bitstring: str, package_size: int, shots: int=1) -> list:
     bitstring = bit_flip_encode(bitstring)
-    results = simulate_normal(simulator, bitstring, package_size)
+    results = simulate_normal(simulator, bitstring, package_size, shots)
     return list(bit_flip_decode(result) for result in results)
+
+
+def simulate_both(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
+    bitstring = bit_flip_encode(bitstring)
+    bitstring = error_correction_encode(bitstring, n)
+
+    results = simulate_normal(simulator, bitstring, package_size, shots)
+
+    results = list(error_correction_decode(result, n) for result in results)
+    results = list(bit_flip_decode(result) for result in results)
+    return results
