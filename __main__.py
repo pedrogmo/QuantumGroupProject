@@ -60,22 +60,34 @@ def transmit_img_decoherence():
 def graph_decoherence():
     message = "111111111111"
 
-    for delay in range(0, 310, 10):
+    delays = [0, 100, 200, 300, 400]
+    accuracies = []
+
+    for delay in delays:
         device_backend = FakeQuebec()
         simulator = AerSimulator.from_backend(device_backend)
 
-        message_result = simulation.simulate_normal(simulator, message, 2, 10, delay_us=delay)[0]
-        matches = sum([c1 == c2 for c1, c2 in zip(message, message_result)])
+        message_results = simulation.simulate_normal(simulator, message, 2, 20, delay_us=delay)
+        total_matches = 0
 
-        print(f"Transmitted {message}\nReceived {message_result}")
+        for res in message_results:
+            total_matches += sum([c1 == c2 for c1, c2 in zip(message, res)])
 
-        print(f"{100 * matches / len(message)}%")
+        avg_matches = total_matches / len(message_results)
+        acc = 100 * avg_matches / len(message)
+        accuracies.append(acc)
 
+        print(f"{acc}%")
 
+    plt.bar([str(d) for d in delays], accuracies)
+    plt.title('Accuracy per Delay time')
+    plt.xlabel('Delay (microseconds)')
+    plt.ylabel('Accuracy (%)')
+    plt.show()
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     # transmit_msg()
     # transmit_img_decoherence()
-    graph_decoherence()
+    # graph_decoherence()
