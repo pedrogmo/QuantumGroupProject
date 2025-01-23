@@ -53,7 +53,7 @@ def build_circuit(bits: str, delay_us: float = 0.0) -> QuantumCircuit:
 
     # Here, we can wait an arbitrary amount of time
     # if delay_us != 0.0:
-    #     circuit.delay(delay_us, unit="us")    
+    #     circuit.delay(delay_us, unit="us")
     circuit.delay(delay_us, unit="us")
 
     # Encode the bit pairs into the first qubit of every Bell-pair

@@ -2,7 +2,7 @@ from qiskit import transpile
 import circuit
 
 
-def simulate_normal(simulator, bitstring: str, package_size: int, shots=1, delay_us:float = 0.0) -> list:
+def simulate_normal(simulator, bitstring: str, package_size: int, shots=1, delay_us: float = 0.0) -> list:
     """
     This simulation method assumes a perfect noiseless simulator. This is why the simulation is only run once (shots=1)
     and using memory=True the resulting measurement is recorded into a list and retrieved using [-1]. This yields a list
