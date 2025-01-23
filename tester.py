@@ -44,9 +44,11 @@ def example():
 
     print(f"The message {bitstring} will be sent using superdense coding.")
 
-    methods = [[],
-               [(error_correction.repetition_encode, error_correction.repetition_decode, [3])],
-               [(error_correction.bit_flip_encode, error_correction.bit_flip_decode, [2])], ]
+    methods = [
+        [],
+        [(error_correction.repetition_encode, error_correction.repetition_decode, [3])],
+        [(error_correction.bit_flip_encode, error_correction.bit_flip_decode, [2])],
+    ]
     descriptions = ["No error correction", "Repetition error correction", "Bit flip error correction"]
 
     for method, description in zip(methods, descriptions):
@@ -56,14 +58,14 @@ def example():
 
 
 def bit_flip_example():
-    n = 16
+    n = 8
     simulator = q_fp.FakeAlgiers()
     bitstrings = list((n - i) * "0" + i * "1" for i in range(n+1))
     package_length = 8
-    shots = 10000
+    shots = 100000
 
     method_1 = []
-    method_2 = [(error_correction.bit_flip_encode, error_correction.bit_flip_decode, [2])]
+    method_2 = [(error_correction.bit_flip_encode, error_correction.bit_flip_decode, [4])]
 
     success_rates_1 = list()
     success_rates_2 = list()
@@ -84,50 +86,19 @@ def bit_flip_example():
     plt.show()
 
 
-#
-# def test_bit_flip():
-#     n = 8
-#     shots = 1000000
-#     messages =
-#     messages = ["00000000", "00001111", "11111111"]
-#
-#     results = {
-#         "Raw": [],
-#         "Bit flip": [],
-#         "Error correction": [],
-#         "Both": []
-#     }
-#     simulator = q_fp.FakeAlgiers()
-#
-#     for message in messages:
-#         print(message)
-#         results_raw = simulation.simulate(simulator, message, 8, shots).count(message)
-#         results_flip = simulation.simulate_bit_flip(simulator, message, 8, shots).count(message)
-#         results_error = simulation.simulate_error_correction(simulator, message, 8, shots).count(message)
-#         results_both = simulation.simulate_both(simulator, message, 8, shots).count(message)
-#         results["Raw"].append(results_raw / shots * 100)
-#         results["Bit flip"].append(results_flip / shots * 100)
-#         results["Error correction"].append(results_error / shots * 100)
-#         results["Both"].append(results_both / shots * 100)
+def provider_example():
+    simulators = q_fp.FakeProviderForBackendV2().backends()
+    bitstring = "01010101"
+    package_length = 8
+    shots = 1000
 
+    success_rates = list()
 
-# def test_provider():
-#     n = 8
-#     shots = 100000
-#     message = n * "0"
-#
-#     providers = q_fp.FakeProviderForBackendV2().backends()
-#     providers = [q_fp.FakeAlgiers(), q_fp.FakeKolkataV2(), q_fp.FakeAuckland(), q_fp.FakeWashingtonV2()]
-#     results = {provider.backend_name: -1.0 for provider in providers}
-#
-#     for provider in providers:
-#         print(provider.backend_name)
-#         try:
-#             message_results = simulation.simulate(provider, message, n, shots)
-#             results[provider.backend_name] = message_results.count(message) / shots * 100
-#         except CircuitTooWideForTarget:
-#             print(f"Warning: {provider.backend_name} does not support this many qubits.")
-#         except TranspilerError:
-#             print(f"Warning: {provider.backend_name} throws TranspilerError")
-#
-#     results = dict(sorted(results.items(), key=lambda item: item[1], reverse=True))
+    for simulator in simulators:
+        try:
+            results = simulation.simulate_full(simulator, bitstring, package_length, shots, [])
+            success = mean(list(get_success_rate(bitstring, result) for result in results))
+            print(f"{simulator.backend_name}: {success}")
+            success_rates.append(success)
+        except Exception as inst:
+            print(f"{inst}: {simulator.backend_name} does not work")

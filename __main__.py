@@ -22,7 +22,8 @@ def circuit_draw(bitstring: str):
 
 
 def main():
-    tester.bit_flip_example()
+    # tester.bit_flip_example()
+    tester.provider_example()
 
 
 def transmit_msg():
