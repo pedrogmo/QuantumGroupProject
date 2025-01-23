@@ -2,7 +2,7 @@ from qiskit import transpile
 import circuit
 
 
-def simulate_normal(simulator, bitstring: str, package_size: int, shots=1) -> list:
+def simulate_normal(simulator, bitstring: str, package_size: int, shots=1, delay_us:float = 0.0) -> list:
     """
     This simulation method assumes a perfect noiseless simulator. This is why the simulation is only run once (shots=1)
     and using memory=True the resulting measurement is recorded into a list and retrieved using [-1]. This yields a list
@@ -10,7 +10,7 @@ def simulate_normal(simulator, bitstring: str, package_size: int, shots=1) -> li
     """
 
     # Build all the circuits (amount of circuits depends on amount of packages)
-    circs = circuit.build_circuits(bitstring, package_size)
+    circs = circuit.build_circuits(bitstring, package_size, delay_us=delay_us)
 
     # Transpile circuits such that it can run on the simulation
     circs_transpiled = list(transpile(circ, simulator) for circ in circs)
@@ -20,6 +20,7 @@ def simulate_normal(simulator, bitstring: str, package_size: int, shots=1) -> li
         simulator.run(circ, shots=shots, memory=True).result().get_memory(circ)
         for circ in circs_transpiled
     )
+
 
     # Reorder results into correct list of bitstrings
     results = list(

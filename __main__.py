@@ -46,20 +46,36 @@ def transmit_img_decoherence():
     simulator = AerSimulator.from_backend(device_backend)
 
     image = Image("./images/mario.png")
-    message = image.to_bitstr()
+    message = image.to_bitstr(compress_flag = False)
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1)[0]
-    image_result = Image.from_bitstr(message_result, image.width, image.height)
+    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=0)[0]
+    image_result = Image.from_bitstr(message_result, image.width, image.height, compress_flag = False)
 
     print("Finished transmitting image!")
 
     image_result.display()
+
+def graph_decoherence():
+    message = "111111111111"
+
+    for delay in range(0, 310, 10):
+        device_backend = FakeQuebec()
+        simulator = AerSimulator.from_backend(device_backend)
+
+        message_result = simulation.simulate_normal(simulator, message, 2, 10, delay_us=delay)[0]
+        matches = sum([c1 == c2 for c1, c2 in zip(message, message_result)])
+
+        print(f"Transmitted {message}\nReceived {message_result}")
+
+        print(f"{100 * matches / len(message)}%")
+
 
 
 
 if __name__ == "__main__":
     # main()
     # transmit_msg()
-    transmit_img_decoherence()
+    # transmit_img_decoherence()
+    graph_decoherence()

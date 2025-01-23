@@ -36,7 +36,7 @@ def encode_bit_pair(circuit: QuantumCircuit, bit_pair: str, index: int):
         circuit.x(index)
 
 
-def build_circuit(bits: str) -> QuantumCircuit:
+def build_circuit(bits: str, delay_us: float = 0.0) -> QuantumCircuit:
     # Reverse bitstring and check validity
     bits = bits[::-1]
     assert_bitstring(bits)
@@ -52,7 +52,8 @@ def build_circuit(bits: str) -> QuantumCircuit:
     circuit.barrier()
 
     # Here, we can wait an arbitrary amount of time
-    # circuit.delay(200.79, unit="us") # Delay of 200.79 microseconds      
+    if delay_us != 0.0:
+        circuit.delay(delay_us, unit="us")    
 
     # Encode the bit pairs into the first qubit of every Bell-pair
     for i in range(0, n, 2):
@@ -67,7 +68,7 @@ def build_circuit(bits: str) -> QuantumCircuit:
     return circuit
 
 
-def build_circuits(bits: str, package_length: int) -> list:
+def build_circuits(bits: str, package_length: int, delay_us: float = 0.0) -> list:
     # Check validity of package length
     assert_package_length(package_length)
 
@@ -75,4 +76,4 @@ def build_circuits(bits: str, package_length: int) -> list:
     packages = list(bits[i:i+package_length] for i in range(0, len(bits), package_length))
 
     # Build the circuits
-    return list(build_circuit(package) for package in packages)
+    return list(build_circuit(package, delay_us=delay_us) for package in packages)
