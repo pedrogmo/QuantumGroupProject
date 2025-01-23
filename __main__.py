@@ -1,5 +1,7 @@
+from pyexpat.errors import messages
+
 from qiskit_aer import AerSimulator
-from qiskit_ibm_runtime.fake_provider import FakeQuebec
+from qiskit_ibm_runtime import fake_provider as q_fp
 from qiskit.visualization import plot_histogram
 
 import matplotlib
@@ -21,11 +23,14 @@ def superdense_draw(bitstring: str):
 
 
 def main():
-    simulator = FakeQuebec()
-    message = "0000000000"
+    simulator = q_fp.FakeAlgiers()
+    message = "00000000"
     print(f"The message {message} will be sent using superdense coding.")
-    message_result = simulation.simulate_normal(simulator, message, 28, 10)
+    message_result = simulation.simulate_error_correction(simulator, message, 8, 1000)
     print(f"The message {message_result} has been received.")
+    results = {value: message_result.count(value) for value in set(message_result)}
+    plot_histogram(results)
+    plt.show()
 
 
 def transmit_msg_sim():
