@@ -1,34 +1,28 @@
 from pyexpat.errors import messages
+from pywin import default_scintilla_encoding
 
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime import fake_provider as q_fp
-from qiskit.visualization import plot_histogram
 
 import matplotlib
 from matplotlib import pyplot as plt
+from sympy.crypto import encode_morse
 
 import simulation
+import tester
 from image import Image
 
 matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
-def superdense_draw(bitstring: str):
+def circuit_draw(bitstring: str):
     circuit = simulation.build_circuit(bitstring)
     circuit.draw("mpl")
     plt.show()
 
 
 def main():
-    simulator = q_fp.FakeAlgiers()
-    message = "00000000"
-    print(f"The message {message} will be sent using superdense coding.")
-    circuits = simulation.build_circuits_transpiled(message, 8, simulator)
-    results = simulation.simulate(simulator, circuits, 100)
-    results = {value: results.count(value) for value in set(results)}
-    print(f"The message {results} has been received.")
-    plot_histogram(results)
-    plt.show()
+    tester.bit_flip_example()
 
 
 def transmit_msg():

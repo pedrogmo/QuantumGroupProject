@@ -105,24 +105,20 @@ def simulate(simulator, circuits: list, shots: int=1) -> list:
 
     return results
 
-# def simulate_error_correction(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
-#     bitstring = error_correction_encode(bitstring, n)
-#     results = simulate_normal(simulator, bitstring, package_size, shots)
-#     return list(error_correction_decode(result, n) for result in results)
-#
-#
-# def simulate_bit_flip(simulator, bitstring: str, package_size: int, shots: int=1) -> list:
-#     bitstring = bit_flip_encode(bitstring)
-#     results = simulate_normal(simulator, bitstring, package_size, shots)
-#     return list(bit_flip_decode(result) for result in results)
-#
-#
-# def simulate_both(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
-#     bitstring = bit_flip_encode(bitstring)
-#     bitstring = error_correction_encode(bitstring, n)
-#
-#     results = simulate_normal(simulator, bitstring, package_size, shots)
-#
-#     results = list(error_correction_decode(result, n) for result in results)
-#     results = list(bit_flip_decode(result) for result in results)
-#     return results
+
+def simulate_full(simulator, bitstring: str, package_length: int, shots: int, correction_methods: list) -> list:
+    if len(correction_methods) == 0:
+        encode_methods, decode_methods, args = [], [], []
+    else:
+        encode_methods, decode_methods, args = zip(*correction_methods)
+
+    for method, arg in zip(encode_methods, args):
+        bitstring = method(bitstring, *arg)
+
+    circuits = build_circuits_transpiled(bitstring, package_length, simulator)
+    results = simulate(simulator, circuits, shots)
+
+    for method, arg in zip(decode_methods, args):
+        results = list(method(result, *arg) for result in results)
+
+    return results
