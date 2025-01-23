@@ -7,7 +7,6 @@ from qiskit.visualization import plot_histogram
 import matplotlib
 from matplotlib import pyplot as plt
 
-import circuit
 import simulation
 from image import Image
 
@@ -15,8 +14,8 @@ matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
 
 
 def superdense_draw(bitstring: str):
-    circ = circuit.build_circuit(bitstring)
-    circ.draw("mpl")
+    circuit = simulation.build_circuit(bitstring)
+    circuit.draw("mpl")
     plt.show()
 
 
@@ -24,9 +23,10 @@ def main():
     simulator = q_fp.FakeAlgiers()
     message = "00000000"
     print(f"The message {message} will be sent using superdense coding.")
-    message_result = simulation.simulate_error_correction(simulator, message, 8, 1000)
-    print(f"The message {message_result} has been received.")
-    results = {value: message_result.count(value) for value in set(message_result)}
+    circuits = simulation.build_circuits_transpiled(message, 8, simulator)
+    results = simulation.simulate(simulator, circuits, 100)
+    results = {value: results.count(value) for value in set(results)}
+    print(f"The message {results} has been received.")
     plot_histogram(results)
     plt.show()
 
@@ -39,15 +39,16 @@ def transmit_msg():
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1)[0]
+    message_result = simulation.simulate(simulator, message, 28, 1)[0]
     image_result = Image.from_bitstr(message_result, image.width, image.height)
 
     print("Finished transmitting image!")
 
     image_result.display()
 
+
 def transmit_img_decoherence():
-    device_backend = FakeQuebec()
+    device_backend = q_fp.FakeAlgiers()
     simulator = AerSimulator.from_backend(device_backend)
 
     image = Image("./images/mario.png")
@@ -55,7 +56,7 @@ def transmit_img_decoherence():
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=0)[0]
+    message_result = simulation.simulate(simulator, message, 28, 1, delay_us=0)[0]
     image_result = Image.from_bitstr(message_result, image.width, image.height, compress_flag = False)
 
     print("Finished transmitting image!")
@@ -69,10 +70,10 @@ def graph_decoherence():
     accuracies = []
 
     for delay in delays:
-        device_backend = FakeQuebec()
+        device_backend = q_fp.FakeAlgiers()
         simulator = AerSimulator.from_backend(device_backend)
 
-        message_results = simulation.simulate_normal(simulator, message, 2, 20, delay_us=delay)
+        message_results = simulation.simulate(simulator, message, 2, 20, delay_us=delay)
         total_matches = 0
 
         for res in message_results:
@@ -93,6 +94,7 @@ def graph_decoherence():
 
 if __name__ == "__main__":
     main()
+    # superdense_draw("0000")
     # transmit_msg()
     # transmit_img_decoherence()
     # graph_decoherence()

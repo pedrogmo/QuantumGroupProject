@@ -42,7 +42,7 @@ def test_bit_flip():
 
     for message in messages:
         print(message)
-        results_raw = simulation.simulate_normal(simulator, message, 8, shots).count(message)
+        results_raw = simulation.simulate(simulator, message, 8, shots).count(message)
         results_flip = simulation.simulate_bit_flip(simulator, message, 8, shots).count(message)
         results_error = simulation.simulate_error_correction(simulator, message, 8, shots).count(message)
         results_both = simulation.simulate_both(simulator, message, 8, shots).count(message)
@@ -64,7 +64,7 @@ def test_provider():
     for provider in providers:
         print(provider.backend_name)
         try:
-            message_results = simulation.simulate_normal(provider, message, n, shots)
+            message_results = simulation.simulate(provider, message, n, shots)
             results[provider.backend_name] = message_results.count(message) / shots * 100
         except CircuitTooWideForTarget:
             print(f"Warning: {provider.backend_name} does not support this many qubits.")

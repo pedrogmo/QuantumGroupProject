@@ -1,31 +1,100 @@
+from qiskit import QuantumCircuit
 from qiskit import transpile
-import circuit
 
 
-bit_flip_threshold = 0.7
-bit_flip_addon = 2
-bit_flip_no = "0" * bit_flip_addon
-bit_flip_yes = "1" * bit_flip_addon
+def assert_bitstring(bitstring: str):
+    if len(bitstring) % 2 == 1:
+        # Because superdense coding sends pairs of bits, the string should be an even numbered length
+        raise ValueError("Invalid length: bitstring should be an even number of bits long")
+    for bit in bitstring:
+        if bit != "0" and bit != "1":
+            raise ValueError("Invalid content: bitstring can only contain 0 and 1 values")
 
 
+def assert_package_length(package_length: int):
+    if package_length > 28:
+        # Because the qiskit simulation only supports up to 28 qubits, the package length cannot exceed 28 bits
+        raise ValueError("Invalid package length: packages should not exceed 28 bits")
+    if package_length % 2 == 1:
+        # Because superdense coding sends pairs of bits, the package length should be an even number
+        raise ValueError("Invalid package length: packages should be an even number of bits long")
 
-def simulate_normal(simulator, bitstring: str, package_size: int, shots: int=1) -> list:
-    """
-    This simulation method assumes a perfect noiseless simulator. This is why the simulation is only run once (shots=1)
-    and using memory=True the resulting measurement is recorded into a list and retrieved using [-1]. This yields a list
-    of bitstrings, which are then joined together to recreate the original bitstring
-    """
 
-    # Build all the circuits (amount of circuits depends on amount of packages)
-    circs = circuit.build_circuits(bitstring, package_size, delay_us=delay_us)
+def bell_state(circuit: QuantumCircuit, index_0: int, index_1: int):
+    circuit.h(index_0)
+    circuit.cx(index_0, index_1)
 
-    # Transpile circuits such that it can run on the simulation
-    circs_transpiled = list(transpile(circ, simulator) for circ in circs)
 
+def bell_state_inv(circuit: QuantumCircuit, index_0: int, index_1: int):
+    circuit.cx(index_0, index_1)
+    circuit.h(index_0)
+
+
+def encode_bit_pair(circuit: QuantumCircuit, bit_pair: str, index: int):
+    if bit_pair[0] == "1":
+        circuit.z(index)
+    if bit_pair[1] == "1":
+        circuit.x(index)
+
+
+def build_circuit(bitstring: str, delay_us: float = 0.0) -> QuantumCircuit:
+    # Reverse bitstring and check validity
+    bitstring = bitstring[::-1]
+    assert_bitstring(bitstring)
+
+    # Initialize quantum circuit
+    n = len(bitstring)
+    circuit = QuantumCircuit(n)
+
+    # Build the circuit
+    # Create all the Bell-pairs
+    for i in range(0, n, 2):
+        bell_state(circuit, i, i+1)
+    circuit.barrier()
+
+    # Here, we can wait an arbitrary amount of time
+    if delay_us != 0.0:
+        circuit.delay(delay_us, unit="us")
+
+    # Encode the bit pairs into the first qubit of every Bell-pair
+    for i in range(0, n, 2):
+        encode_bit_pair(circuit, bitstring[i:i + 2], i)
+    circuit.barrier()
+
+    # Decode all the Bell-pairs and measure their states
+    for i in range(0, n, 2):
+        bell_state_inv(circuit, i, i + 1)
+    circuit.measure_all()
+
+    return circuit
+
+
+def build_circuits(bitstring: str, package_length: int, delay_us: float = 0.0) -> list:
+    # Check validity of package length
+    assert_package_length(package_length)
+
+    # Divide bits into equally sized packages (with the last bits as the remainder package)
+    packages = list(bitstring[i:i + package_length] for i in range(0, len(bitstring), package_length))
+
+    # Build the circuits
+    return list(build_circuit(package, delay_us=delay_us) for package in packages)
+
+
+def build_circuit_transpiled(bits: str, simulator, delay_us: float = 0.0) -> QuantumCircuit:
+    circuit = build_circuit(bits, delay_us)
+    return transpile(circuit, simulator)
+
+
+def build_circuits_transpiled(bits: str, package_length: int, simulator, delay_us: float = 0.0) -> list:
+    circuits = build_circuits(bits, package_length, delay_us)
+    return list(transpile(circuit, simulator) for circuit in circuits)
+
+
+def simulate(simulator, circuits: list, shots: int=1) -> list:
     # Simulate circuits and collect their results in a list.
     results = list(
-        simulator.run(circ, shots=shots, memory=True).result().get_memory(circ)
-        for circ in circs_transpiled
+        simulator.run(circuit, shots=shots, memory=True).result().get_memory(circuit)
+        for circuit in circuits
     )
 
     # Reorder results into correct list of bitstrings
@@ -33,59 +102,27 @@ def simulate_normal(simulator, bitstring: str, package_size: int, shots: int=1) 
         "".join(result[i] for result in results)
         for i in range(shots)
     )
+
     return results
 
-
-def error_correction_encode(bitstring: str, n: int=3) -> str:
-    if n % 2 == 0:
-        raise ValueError("Invalid multiplier: n should be an uneven number")
-    return "".join(bit * n for bit in bitstring)
-
-
-def error_correction_decode(bitstring: str, n: int=3) -> str:
-    if n % 2 == 0:
-        raise ValueError("Invalid multiplier: n should be an uneven number")
-    threshold = int((n - 1) / 2)
-
-    results = list(bitstring[i:i + n] for i in range(0, len(bitstring), n))
-    return "".join(list("1" if bit.count("1") > threshold else "0" for bit in results))
-
-
-def bitstring_flip(bitstring: str) -> str:
-    return "".join("1" if bit == "0" else "0" for bit in bitstring)
-
-
-def bit_flip_encode(bitstring: str) -> str:
-    count_1 = bitstring.count("1") / len(bitstring)
-    if count_1 > 0.7:
-        return bit_flip_yes + bitstring_flip(bitstring)
-    return bit_flip_no + bitstring
-
-
-def bit_flip_decode(bitstring: str) -> str:
-    if bitstring[0:bit_flip_addon] == bit_flip_no:
-        return bitstring[bit_flip_addon:]
-    return  bitstring_flip(bitstring[bit_flip_addon:])
-
-
-def simulate_error_correction(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
-    bitstring = error_correction_encode(bitstring, n)
-    results = simulate_normal(simulator, bitstring, package_size, shots)
-    return list(error_correction_decode(result, n) for result in results)
-
-
-def simulate_bit_flip(simulator, bitstring: str, package_size: int, shots: int=1) -> list:
-    bitstring = bit_flip_encode(bitstring)
-    results = simulate_normal(simulator, bitstring, package_size, shots)
-    return list(bit_flip_decode(result) for result in results)
-
-
-def simulate_both(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
-    bitstring = bit_flip_encode(bitstring)
-    bitstring = error_correction_encode(bitstring, n)
-
-    results = simulate_normal(simulator, bitstring, package_size, shots)
-
-    results = list(error_correction_decode(result, n) for result in results)
-    results = list(bit_flip_decode(result) for result in results)
-    return results
+# def simulate_error_correction(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
+#     bitstring = error_correction_encode(bitstring, n)
+#     results = simulate_normal(simulator, bitstring, package_size, shots)
+#     return list(error_correction_decode(result, n) for result in results)
+#
+#
+# def simulate_bit_flip(simulator, bitstring: str, package_size: int, shots: int=1) -> list:
+#     bitstring = bit_flip_encode(bitstring)
+#     results = simulate_normal(simulator, bitstring, package_size, shots)
+#     return list(bit_flip_decode(result) for result in results)
+#
+#
+# def simulate_both(simulator, bitstring: str, package_size: int, shots: int=1, n: int=3) -> list:
+#     bitstring = bit_flip_encode(bitstring)
+#     bitstring = error_correction_encode(bitstring, n)
+#
+#     results = simulate_normal(simulator, bitstring, package_size, shots)
+#
+#     results = list(error_correction_decode(result, n) for result in results)
+#     results = list(bit_flip_decode(result) for result in results)
+#     return results
