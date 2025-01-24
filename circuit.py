@@ -78,3 +78,4 @@ def build_circuits(bits: str, package_length: int, delay_us: float = 0.0) -> lis
 
     # Build the circuits
     return list(build_circuit(package, delay_us=delay_us) for package in packages)
+
