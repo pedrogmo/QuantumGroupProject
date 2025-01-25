@@ -42,8 +42,13 @@ class ExperimentResult:
 
 # You'll need to specify the credentials when initializing QiskitRuntimeService, if they were not previously saved.
 def run(bitstring: str, package_size: int, shots: int = 1024) -> ExperimentResult:
-    service = QiskitRuntimeService()
-    backend = service.least_busy(operational=True, simulator=False)
+    service = QiskitRuntimeService(
+        channel='ibm_quantum',
+        instance='ibm-q/open/main',
+        token='7b9c68d267deebc84b3d486503e492ad85f674279f69d0866e487363a7bf802f375c42dadc3d52b44bd903bf37a2bd7a14dab44f040a22e041969e9a11d1a1b1'
+    )
+    backend = service.backend("ibm_sherbrooke")
+    # backend = service.least_busy()
 
     sampler = Sampler(backend)
     sampler.options.default_shots = shots
