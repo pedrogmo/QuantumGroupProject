@@ -36,7 +36,7 @@ def encode_bit_pair(circuit: QuantumCircuit, bit_pair: str, index: int):
         circuit.x(index)
 
 
-def build_circuit(bits: str) -> QuantumCircuit:
+def build_circuit(bits: str, mapping: str = "00") -> QuantumCircuit:
     # Reverse bitstring and check validity
     bits = bits[::-1]
     assert_bitstring(bits)
@@ -51,6 +51,12 @@ def build_circuit(bits: str) -> QuantumCircuit:
         bell_state(circuit, i, i+1)
     circuit.barrier()
 
+    # Apply the mapping to the second bit (default to "00")
+    if mapping != "00":
+        for i in range(0, n, 2):
+            encode_bit_pair(circuit, mapping, i+1)
+        circuit.barrier()
+
     # Encode the bit pairs into the first qubit of every Bell-pair
     for i in range(0, n, 2):
         encode_bit_pair(circuit, bits[i:i + 2], i)
@@ -64,7 +70,7 @@ def build_circuit(bits: str) -> QuantumCircuit:
     return circuit
 
 
-def build_circuits(bits: str, package_length: int) -> list:
+def build_circuits(bits: str, package_length: int, mapping: str = "00") -> list:
     # Check validity of package length
     assert_package_length(package_length)
 
@@ -72,4 +78,4 @@ def build_circuits(bits: str, package_length: int) -> list:
     packages = list(bits[i:i+package_length] for i in range(0, len(bits), package_length))
 
     # Build the circuits
-    return list(build_circuit(package) for package in packages)
+    return list(build_circuit(package, mapping=mapping) for package in packages)

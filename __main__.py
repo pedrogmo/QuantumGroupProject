@@ -26,21 +26,28 @@ def main():
     print(f"The message {message_result} has been received.")
 
 
-def transmit_msg():
+def transmit_msg(mapping: str = "00", compress_flag: bool = True, image="./images/mario.png"):
     simulator = AerSimulator()
-    image = Image("./images/mario.png")
-    message = image.to_bitstr()
+    image = Image(image)
+    message = image.to_bitstr(compress_flag=compress_flag)
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1)[0]
-    image_result = Image.from_bitstr(message_result, image.width, image.height)
+    message_result = simulation.simulate_normal(simulator, message, 28, 1, mapping=mapping)[0]
+    image_result = Image.from_bitstr(message_result, image.width, image.height, compress_flag=compress_flag)
 
     print("Finished transmitting image!")
 
     image_result.display()
 
 
+def mapped_image():
+    print("Enter 2 bit mapping:")
+    mapping = input()
+    transmit_msg(mapping, compress_flag=False, image="./images/mario.png")
+
+
 if __name__ == "__main__":
-    main()
+    # main()
     # transmit_msg()
+    mapped_image()
