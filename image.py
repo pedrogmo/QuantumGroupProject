@@ -148,9 +148,9 @@ class Image:
 
         return bitstr
 
-    def display(self):
+    def display(self, subplot=(1, 1, 1)):
         """Displays the image using matplotlib"""
         print(f"Displaying image from {self.path}")
+        plt.subplot(subplot[0], subplot[1], subplot[2])
         plt.imshow(self.buffer)
         plt.axis("off")
-        plt.show()
