@@ -11,9 +11,9 @@ def assert_bitstring(bitstring: str):
 
 
 def assert_package_length(package_length: int):
-    if package_length > 28:
+    # if package_length > 28:
         # Because the qiskit simulation only supports up to 28 qubits, the package length cannot exceed 28 bits
-        raise ValueError("Invalid package length: packages should not exceed 28 bits")
+        # raise ValueError("Invalid package length: packages should not exceed 28 bits")
     if package_length % 2 == 1:
         # Because superdense coding sends pairs of bits, the package length should be an even number
         raise ValueError("Invalid package length: packages should be an even number of bits long")

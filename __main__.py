@@ -44,9 +44,10 @@ def transmit_msg_sim():
 
     image_result.display()
 
+
 def fetch_job():
     image = Image("./images/mario.png")
-    job_id = 'cy98eja7v8tg008frzc0'
+    job_id = "cy98eja7v8tg008frzc0"
     exp_result: ExperimentResult = quantum_hardware.fetch_previous_job(job_id, 28)
 
     message_result = exp_result.bitstring
@@ -56,20 +57,53 @@ def fetch_job():
 
     image_result.display()
 
+
 def transmit_msg_hardware():
     image = Image("./images/mario.png")
-    message = image.to_bitstr()
+    message = image.to_bitstr(compress_flag=False)
 
     print("Transmitting message of length ", len(message))
 
-    exp_result: ExperimentResult = quantum_hardware.run(message, 8)
+    exp_result: ExperimentResult = quantum_hardware.run(message, 126)
 
     message_result = exp_result.bitstring
-    image_result = Image.from_bitstr(message_result, image.width, image.height)
+    image_result = Image.from_bitstr(
+        message_result, image.width, image.height, compress_flag=False
+    )
 
     print(f"Finished transmitting image with a fidelity of {exp_result.fidelity}!")
 
     image_result.display()
+
+
+def measure_fidelity_hardware():
+    image = Image("./images/mario.png")
+    message = image.to_bitstr(compress_flag=False)
+
+    # qubit_counts = [4, 8, 16, 32, 64, 96, 126]
+    qubit_counts = [80, 100, 112]
+    qubit_counts.reverse()
+
+    print("Transmitting message of length ", len(message))
+
+    for q in qubit_counts:
+        # color print the qubit count
+        print(f"[\033[1;32;40m{q} qubits\033[0m]")
+        exp_result: ExperimentResult = quantum_hardware.run(message, q)
+
+        message_result: str = exp_result.bitstring
+        image_result: Image = Image.from_bitstr(
+            message_result, image.width, image.height, compress_flag=False
+        )
+
+        print(f"Finished transmitting image with a fidelity of {exp_result.fidelity}!")
+
+        # write to a file for later analysis with qubit count and fidelity
+        with open("fidelity_results.txt", "a") as f:
+            f.write(f"{q} qubits | {exp_result.fidelity}\n")
+
+        # save the image in images/hardware/sherbrooke with the qubit count as title
+        image_result.buffer.save(f"images/hardware/sherbrooke/{q}_qubits.png")
 
 
 def transmit_img_decoherence():
@@ -81,9 +115,11 @@ def transmit_img_decoherence():
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=0)[0]
+    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=0)[
+        0
+    ]
     image_result = Image.from_bitstr(
-        message_result, image.width, image.height, compress_flag = False
+        message_result, image.width, image.height, compress_flag=False
     )
 
     print("Finished transmitting image!")
@@ -123,10 +159,10 @@ def graph_decoherence():
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # transmit_msg_hardware()
+    measure_fidelity_hardware()
     # transmit_msg_sim()
     # transmit_img_decoherence()
     # graph_decoherence()
     # fetch_job()
-
