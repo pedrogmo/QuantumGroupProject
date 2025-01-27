@@ -1,30 +1,9 @@
 from qiskit_ibm_runtime import fake_provider as q_fp
 from statistics import mean
-from matplotlib import pyplot as plt
 import numpy as np
 
 import simulation
 import error_correction
-
-
-# def bar_graph(x_axis, results):
-#     x_range = np.arange(len(x_axis))
-#     width = 0.2
-#     multiplier = 0
-#
-#     fig, ax = plt.subplots(layout="constrained")
-#
-#     for sim_type, measurement in results.items():
-#         offset = width * multiplier
-#         rects = ax.bar(x_range + offset, measurement, width, label=sim_type)
-#         ax.bar_label(rects, padding=3)
-#         multiplier += 1
-#
-#     ax.set_ylabel("Success rate (%)")
-#     ax.set_title("Simulation success rate by method")
-#     ax.set_xticks(x_range + width, x_axis)
-#     ax.legend()
-#     plt.show()
 
 
 def get_success_rate(bitstring: str, result: str) -> float:
@@ -93,7 +72,7 @@ def provider_fidelity():
 
 def bit_flip_fidelity():
     n = 24
-    simulator = q_fp.FakeKyiv()
+    simulator = q_fp.FakeCusco()
     bitstrings = list((n - i) * "0" + i * "1" for i in range(n+1))
     package_length = 8
     shots = 1000000
@@ -112,7 +91,7 @@ def bit_flip_fidelity():
 
 def package_size_fidelity():
     n = 14
-    simulator = q_fp.FakeKyiv()
+    simulator = q_fp.FakeCusco()
     bitstring = "01010101"
     package_lengths = list(2 * i for i in range(1, n+1))
     shots = 1000000
@@ -129,7 +108,7 @@ def package_size_fidelity():
 
 
 def repetition_fidelity():
-    simulator = q_fp.FakeKyiv()
+    simulator = q_fp.FakeCusco()
     bitstring = "01010101"
     package_length = 8
     shots = 1000000
