@@ -50,7 +50,7 @@ def transmit_img_decoherence():
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=0)[0]
+    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=100)[0]
     image_result = Image.from_bitstr(message_result, image.width, image.height, compress_flag = False)
 
     print("Finished transmitting image!")
@@ -61,13 +61,13 @@ def graph_decoherence():
     message = "111111111111"
 
     delays = [0, 100, 200, 300, 400]
-    accuracies = []
+    fidelity = []
 
     for delay in delays:
         device_backend = FakeQuebec()
         simulator = AerSimulator.from_backend(device_backend)
 
-        message_results = simulation.simulate_normal(simulator, message, 2, 20, delay_us=delay)
+        message_results = simulation.simulate_normal(simulator, message, 2, 1000, delay_us=delay)
         total_matches = 0
 
         for res in message_results:
@@ -75,19 +75,36 @@ def graph_decoherence():
 
         avg_matches = total_matches / len(message_results)
         acc = 100 * avg_matches / len(message)
-        accuracies.append(acc)
+        fidelity.append(acc)
 
         print(f"{acc}%")
 
-    plt.bar([str(d) for d in delays], accuracies)
-    plt.title('Accuracy per Delay time')
-    plt.xlabel('Delay (microseconds)')
-    plt.ylabel('Accuracy (%)')
+    # Create the plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(delays, fidelity, marker='o', linestyle='-', color='b', label='Fidelity')
+
+    # Customize the plot
+    plt.title('Fidelity vs. Delay Time', fontsize=16)
+    plt.xlabel('Delay Time (μs)', fontsize=14)
+    plt.ylabel('Fidelity (%)', fontsize=14)
+    plt.xticks(rotation=45, fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.grid(alpha=0.5)
+    plt.legend(fontsize=12)
+
+    # Show the plot
+    plt.tight_layout()
     plt.show()
+
+    # plt.bar([str(d) for d in delays], accuracies)
+    # plt.title('Fidelity per Delay time')
+    # plt.xlabel('Delay (microseconds)')
+    # plt.ylabel('Fidelity (%)')
+    # plt.show()
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     # transmit_msg()
     # transmit_img_decoherence()
-    # graph_decoherence()
+    graph_decoherence()
