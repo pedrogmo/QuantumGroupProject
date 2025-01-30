@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import matplotlib.image as mpimg
 
 images_path = "images/hardware/sherbrooke/"

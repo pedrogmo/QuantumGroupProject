@@ -21,7 +21,7 @@
 # observables = [SparsePauliOp(label) for label in observables_labels]
 
 
-from qiskit import QuantumCircuit, transpile
+from qiskit import transpile
 from qiskit_ibm_runtime import QiskitRuntimeService, SamplerV2 as Sampler
 from qiskit.primitives import PrimitiveResult
 import circuit
@@ -45,7 +45,7 @@ def run(bitstring: str, package_size: int, shots: int = 1024) -> ExperimentResul
     service = QiskitRuntimeService(
         channel='ibm_quantum',
         instance='ibm-q/open/main',
-        token='7b9c68d267deebc84b3d486503e492ad85f674279f69d0866e487363a7bf802f375c42dadc3d52b44bd903bf37a2bd7a14dab44f040a22e041969e9a11d1a1b1'
+        token=''
     )
     backend = service.backend("ibm_sherbrooke")
     # backend = service.least_busy()

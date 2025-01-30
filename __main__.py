@@ -1,18 +1,12 @@
-from pyexpat.errors import messages
-# from pywin import default_scintilla_encoding
-
 from qiskit_aer import AerSimulator
 from qiskit_ibm_runtime import fake_provider as q_fp
 
 import matplotlib
 from matplotlib import pyplot as plt
-from sympy.crypto import encode_morse
 
-import circuit
 import quantum_hardware
-from quantum_hardware import ExperimentResult
 import simulation
-import tester
+from quantum_hardware import ExperimentResult
 from image import Image
 
 matplotlib.use("TkAgg")  # or 'Agg', 'Qt5Agg', etc.
@@ -24,11 +18,6 @@ def circuit_draw(bitstring: str):
     plt.show()
 
 
-def main():
-    # tester.bit_flip_example()
-    tester.provider_example()
-
-
 def transmit_msg_sim():
     simulator = AerSimulator()
 
@@ -37,7 +26,8 @@ def transmit_msg_sim():
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate(simulator, message, 28, 1)[0]
+    message_result = simulation.simulate_full(simulator, message, 28, 1, [])[0]
+    print(message_result)
     image_result = Image.from_bitstr(message_result, image.width, image.height)
 
     print("Finished transmitting image!")
@@ -115,9 +105,7 @@ def transmit_img_decoherence():
 
     print("Transmitting message of length ", len(message))
 
-    message_result = simulation.simulate_normal(simulator, message, 28, 1, delay_us=0)[
-        0
-    ]
+    message_result = simulation.simulate_full(simulator, message, 28, 1, [])[0]
     image_result = Image.from_bitstr(
         message_result, image.width, image.height, compress_flag=False
     )
@@ -137,7 +125,8 @@ def graph_decoherence():
         device_backend = q_fp.FakeAlgiers()
         simulator = AerSimulator.from_backend(device_backend)
 
-        message_results = simulation.simulate_normal(simulator, message, 2, 1000, delay_us=delay)
+        circuits = simulation.build_circuits_transpiled(message, 2, simulator, delay)
+        message_results = simulation.simulate(simulator, circuits, 1000)
         total_matches = 0
 
         for res in message_results:
@@ -166,20 +155,10 @@ def graph_decoherence():
     plt.tight_layout()
     plt.show()
 
-    # plt.bar([str(d) for d in delays], accuracies)
-    # plt.title('Fidelity per Delay time')
-    # plt.xlabel('Delay (microseconds)')
-    # plt.ylabel('Fidelity (%)')
-    # plt.show()
+
+def main():
+    transmit_msg_sim()
 
 
 if __name__ == "__main__":
-    # main()
-    # transmit_msg()
-    # transmit_img_decoherence()
-    # graph_decoherence()
-    # transmit_msg_hardware()
-    # measure_fidelity_hardware()
-    transmit_msg_sim()
-    # graph_decoherence()
-    # fetch_job()
+    main()

@@ -1,5 +1,4 @@
-from qiskit import QuantumCircuit
-from qiskit import transpile
+from qiskit import QuantumCircuit, transpile
 
 
 def assert_bitstring(bitstring: str):
@@ -106,18 +105,22 @@ def simulate(simulator, circuits: list, shots: int=1) -> list:
     return results
 
 
-def simulate_full(simulator, bitstring: str, package_length: int, shots: int, correction_methods: list) -> list:
-    if len(correction_methods) == 0:
+def simulate_full(simulator, bitstring: str, package_length: int, shots: int, correction_methods: list=None) -> list:
+    # Build the circuits using specified error correction methods, simulate them and collect their results in a list.
+    if correction_methods is None:
         encode_methods, decode_methods, args = [], [], []
     else:
         encode_methods, decode_methods, args = zip(*correction_methods)
 
+    # Encode the bitstring using specified encoding methods
     for method, arg in zip(encode_methods, args):
         bitstring = method(bitstring, *arg)
 
+    # Build and simulate circuits and collect their results
     circuits = build_circuits_transpiled(bitstring, package_length, simulator)
     results = simulate(simulator, circuits, shots)
 
+    # Decode the bitstring using specified decoding methods
     for method, arg in zip(decode_methods, args):
         results = list(method(result, *arg) for result in results)
 
